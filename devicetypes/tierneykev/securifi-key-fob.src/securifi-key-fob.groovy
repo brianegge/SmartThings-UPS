@@ -39,16 +39,19 @@ def buttonPush(button){
     //For ST App Purposes 1=Lock, 2=Home, 3=Unlock , 4 = * (only used to join)
     def name = null
     if (button == 0) {
+        //Unlock - ST Button 3
         name = "3"
-        def currentST = device.currentState("button")?.value
+        def currentST = device.currentState("button3")?.value
         log.debug "Unlock button Pushed"           
     } else if (button == 2) {
-        name = "1"
+    	//Home - ST Button 2
+        name = "2"
         def currentST = device.currentState("button2")?.value
         log.debug "Home button pushed"        
     } else if (button == 3) {
-        name = "2"
-        def currentST = device.currentState("button3")?.value
+        //Lock ST Button 1
+        name = "1"
+     	def currentST = device.currentState("button")?.value
         log.debug "Lock Button pushed"         
     } 
 
