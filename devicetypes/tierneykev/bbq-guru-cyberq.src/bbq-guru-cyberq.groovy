@@ -144,9 +144,6 @@ metadata {
         valueTile("timer", "device.timercurr") {
             state "default", label:'Timer\n ${currentValue}'
         }
-		
-
-        
 	    //Control
 		valueTile("cyctime", "device.cyctime") {
             state "default", label:'Cycle Time\n ${currentValue}'
@@ -179,6 +176,24 @@ metadata {
         ])
 	}
 }
+def installed(){
+	log.debug "Installed with settings: ${settings}"
+    def hosthex = convertIPtoHex(deviceIP).toUpperCase() 
+    def porthex = convertPortToHex(devicePort).toUpperCase()
+	device.deviceNetworkId = "$hosthex:$porthex" 
+    updateSettings()
+}
+def updated(){
+    log.debug "Updated with settings: ${settings}"
+	def hosthex = convertIPtoHex(deviceIP).toUpperCase() 
+    def porthex = convertPortToHex(devicePort).toUpperCase()
+	device.deviceNetworkId = "$hosthex:$porthex" 
+    updateSettings() 
+}
+def refresh(){
+	log.debug 'Refresh Called'
+    getStatus()
+}
 
 def setCooksetTemp(degrees){
 	log.debug("setCooksetTemp Called: ${degrees}")
@@ -196,33 +211,6 @@ def setFood3Temp(degrees){
 	log.debug("setFood3Temp Called: ${degrees}")
     setParameter('FOOD3_SET',degrees)
 }
-
-
-
-def installed(){
-	getStatus()
-    /* Need to rework this - not all get set
-    setParameter('COOK_NAME',cookName)
-    setParameter('FOOD1_NAME',food1Name)
-    setParameter('FOOD2_NAME',food2Name)
-    setParameter('FOOD3_NAME',food3Name)
-    */
-    
-}
-def updated(){
-	getStatus()    
-    /* Need to rework this - not all get set
-    setParameter('COOK_NAME',cookName)
-    setParameter('FOOD1_NAME',food1Name)
-    setParameter('FOOD2_NAME',food2Name)
-    setParameter('FOOD3_NAME',food3Name)
-    */
-}
-
-def refresh(){
-	log.debug 'Refresh Called'
-    getStatus()
-}
 def parse(description) {
 	//log.debug "Parsing '${description}'"
 	def result = []
@@ -231,8 +219,8 @@ def parse(description) {
     //log.debug "xml: ${msg.xml}"
     
     
-        def xml = msg.xml
-        if(xml){
+    def xml = msg.xml
+    if(xml){
         //Cook
         result << createEvent(name: "cooktemp", value:convertTemp(xml.COOK.COOK_TEMP.text()) )
         result << createEvent(name: "cookset", value:convertTemp(xml.COOK.COOK_SET.text()) )
@@ -263,18 +251,77 @@ def parse(description) {
 
         result
     } else {
-    	
-    	getStatus()
-       
+    	log.debug "Non XML response received"
     }
 }
 
+
+
+def updateSettings(){
+	//work in progress
+	def cookName = settings['cookName']
+    def food1Name = settings['food1Name']
+    def food2Name = settings['food2Name']
+    def food3Name = settings['food3Name']
+    
+	log.trace "update settings called"
+	def userpassascii = "${username}:${password}"
+	def userpass = "Basic " + userpassascii.encodeAsBase64().toString()
+
+	def headers = [:] 
+    headers.put("HOST", "$deviceIP:$devicePort")
+    if (loginRequired) {
+        headers.put("Authorization", userpass)
+    }
+    
+    def result = new physicalgraph.device.HubAction(
+        method: "POST",
+        path: "/",
+        headers: headers,
+        //body: """${parameter}=${value}"""
+       body: "COOK_NAME=${cookName}&FOOD1_NAME=${food1Name}&FOOD2_NAME=${food2Name}&FOOD3_NAME=${food3Name}"
+       )
+}	
+
+def getStatus() {
+	log.trace "Get Status Called"
+	def userpassascii = "${username}:${password}"
+	def userpass = "Basic " + userpassascii.encodeAsBase64().toString()
+    
+    def headers = [:] 
+    headers.put("HOST", "$deviceIP:$devicePort")
+    if (loginRequired) {
+        headers.put("Authorization", userpass)
+    }
+    def result = new physicalgraph.device.HubAction(
+        method: "GET",
+        path: "/config.xml",
+        headers: headers
+       )
+}
+private setParameter(parameter,value){
+	log.trace "setParameter called with ${parameter}:${value}"
+	def userpassascii = "${username}:${password}"
+	def userpass = "Basic " + userpassascii.encodeAsBase64().toString()
+   
+    def headers = [:] 
+    headers.put("HOST", "$deviceIP:$devicePort")
+    if (loginRequired) {
+        headers.put("Authorization", userpass)
+    }
+	
+    def result = new physicalgraph.device.HubAction(
+        method: "POST",
+        path: "/",
+        headers: headers,
+        body: """${parameter}=${value}"""
+       )
+}
 
 private String convertIPtoHex(ipAddress) { 
     String hex = ipAddress.tokenize( '.' ).collect {  String.format( '%02x', it.toInteger() ) }.join()
     //log.debug "IP address entered is $ipAddress and the converted hex code is $hex"
     return hex
-
 }
 
 private String convertPortToHex(port) {
@@ -299,51 +346,6 @@ private getHostAddress() {
 	def ip = convertHexToIP(parts[0])
 	def port = convertHexToInt(parts[1])
 	return ip + ":" + port
-}
-
-def getStatus() {
-	def userpassascii = "${username}:${password}"
-	def userpass = "Basic " + userpassascii.encodeAsBase64().toString()
-    
-    def host = deviceIP 
-    def hosthex = convertIPtoHex(host).toUpperCase() 
-    def porthex = convertPortToHex(devicePort).toUpperCase()
-    device.deviceNetworkId = "$hosthex:$porthex" 
-    
-    
-    def headers = [:] 
-    headers.put("HOST", "$host:$devicePort")
-    if (loginRequired) {
-        headers.put("Authorization", userpass)
-    }
-    def result = new physicalgraph.device.HubAction(
-        method: "GET",
-        path: "/config.xml",
-        headers: headers
-       )
-}
-private setParameter(parameter,value){
-	def userpassascii = "${username}:${password}"
-	def userpass = "Basic " + userpassascii.encodeAsBase64().toString()
-    
-    def host = deviceIP 
-    def hosthex = convertIPtoHex(host).toUpperCase() 
-    def porthex = convertPortToHex(devicePort).toUpperCase()
-    device.deviceNetworkId = "$hosthex:$porthex" 
-    
-    
-    def headers = [:] 
-    headers.put("HOST", "$host:$devicePort")
-    if (loginRequired) {
-        headers.put("Authorization", userpass)
-    }
-	
-    def result = new physicalgraph.device.HubAction(
-        method: "POST",
-        path: "/",
-        headers: headers,
-        body: """${parameter}=${value}"""
-       )
 }
 private convertTemp(String temp){
 	def formattedTemp
