@@ -178,9 +178,7 @@ metadata {
 }
 def installed(){
 	log.debug "Installed with settings: ${settings}"
-    def hosthex = convertIPtoHex(deviceIP).toUpperCase() 
-    def porthex = convertPortToHex(devicePort).toUpperCase()
-	device.deviceNetworkId = "$hosthex:$porthex" 
+
     updateSettings()
 }
 def updated(){
