@@ -57,7 +57,7 @@ metadata {
         input("devicePort", "string", title:"Port", description: "Port", defaultValue: 80 , required: true, displayDuringSetup: true)
         input("loginRequired", "bool", title:"Is login required?", description: "Choose if user/pass has been enabled", defaultValue: true, displayDuringSetup: true)
         input("username", "string", title:"User", description: "Please enter your username", required: false, displayDuringSetup: true)
-    	input("password", "string", title:"Password", description: "Please enter your password", required: false, displayDuringSetup: true)
+    	input("password", "password", title:"Password", description: "Please enter your password", required: false, displayDuringSetup: true)
         input("cookName","string", title:"Cook Name", description: "Name cooker sensor",required:false,displayDuringSetup:true,defaultValue:"CookName")
         input("food1Name","string", title:"Food 1 Name", description: "Name Food 1 Sensor",required:false,displayDuringSetup:true,defaultValue:"Food1")
         input("food2Name","string", title:"Food 2 Name", description: "Name Food 2 Sensor",required:false,displayDuringSetup:true,defaultValue:"Food2")
