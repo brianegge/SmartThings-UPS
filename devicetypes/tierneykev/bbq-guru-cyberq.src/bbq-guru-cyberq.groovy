@@ -43,10 +43,7 @@ metadata {
         attribute "output_percent", string
         attribute "timercurr", string
         attribute "timerstatus", string
-        //Control                    
-        attribute "cyctime", number
-        attribute "propband", number
-        attribute "cook_ramp", number
+
         
         command "setCooksetTemp"
         command "setFood1Temp"
@@ -67,10 +64,6 @@ metadata {
         input("food3Name","string", title:"Food 3 Name", description: "Name Food 3 Sensor",required:false,displayDuringSetup:true,defaultValue:"Food3")
     
     }
-
-	simulator {
-		// TODO: define status and reply messages here
-	}
 
 	tiles {
         //Cook
@@ -144,17 +137,7 @@ metadata {
         valueTile("timer", "device.timercurr") {
             state "default", label:'Timer\n ${currentValue}'
         }
-	    //Control
-		valueTile("cyctime", "device.cyctime") {
-            state "default", label:'Cycle Time\n ${currentValue}'
-        }
-        valueTile("propband", "device.propband") {
-            state "default", label:'Prop Band\n ${currentValue}'
-        }
-        valueTile("cook_ramp", "device.cook_ramp") {
-            state "default", label:'Ramp Mode\n ${currentValue}'
-        }
-		
+	    
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat") {
         	state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
     	}
@@ -162,7 +145,7 @@ metadata {
     
         main(["cooktemp"])
         details([
-        "cooktemp","timer","cookstatus",
+        "cooktemp","cookstatus","output",
         "cooksetcontrol","cookset",
         "food1name","food1status","food1temp",
         "food1control","food1set",
@@ -170,43 +153,42 @@ metadata {
         "food2control","food2set",
         "food3name","food3status","food3temp",
         "food3control", "food3set",
-        "cyctime",
-        "propband","cook_ramp","output",
+        "timer",
         "refresh"
         ])
 	}
 }
 def installed(){
 	log.debug "Installed with settings: ${settings}"
-
     updateSettings()
 }
 def updated(){
     log.debug "Updated with settings: ${settings}"
+    //Need to set the devices network ID - ip:port in hex
 	def hosthex = convertIPtoHex(deviceIP).toUpperCase() 
     def porthex = convertPortToHex(devicePort).toUpperCase()
 	device.deviceNetworkId = "$hosthex:$porthex" 
     updateSettings() 
 }
 def refresh(){
-	log.debug 'Refresh Called'
+	log.trace 'Refresh Called'
     getStatus()
 }
 
 def setCooksetTemp(degrees){
-	log.debug("setCooksetTemp Called: ${degrees}")
+	//log.debug("setCooksetTemp Called: ${degrees}")
     setParameter('COOK_SET',degrees)
 }
 def setFood1Temp(degrees){
-	log.debug("setFood1Temp Called: ${degrees}")
+	//log.debug("setFood1Temp Called: ${degrees}")
     setParameter('FOOD1_SET',degrees)
 }
 def setFood2Temp(degrees){
-	log.debug("setFood2Temp Called: ${degrees}")
+	//log.debug("setFood2Temp Called: ${degrees}")
     setParameter('FOOD2_SET',degrees)
 }
 def setFood3Temp(degrees){
-	log.debug("setFood3Temp Called: ${degrees}")
+	//log.debug("setFood3Temp Called: ${degrees}")
     setParameter('FOOD3_SET',degrees)
 }
 def parse(description) {
@@ -241,28 +223,21 @@ def parse(description) {
         //Timer & Output (No Parent Element)
         result << createEvent(name: "output_percent", value: xml.OUTPUT_PERCENT.text()) 
         result << createEvent(name: "timercurr", value: xml.TIMER_CURR.text())
-
-        //Control
-        result << createEvent(name: "cyctime", value: xml.CONTROL.CYCTIME.text())
-        result << createEvent(name: "propband", value: xml.CONTROL.PROPBAND.text())
-        result << createEvent(name: "cook_ramp", value: xml.CONTROL.COOK_RAMP.text())
-
+     
         result
+        
     } else {
-    	log.debug "Non XML response received"
+    	//When sending command, device responds with HTML page
+        
+    	//log.debug "Non XML response received"
+        runIn(15,getStatus) //query XML and update values
     }
 }
 
 
 
 def updateSettings(){
-	//work in progress
-	def cookName = settings['cookName']
-    def food1Name = settings['food1Name']
-    def food2Name = settings['food2Name']
-    def food3Name = settings['food3Name']
-    
-	log.trace "update settings called"
+	//log.trace "update settings called"
 	def userpassascii = "${username}:${password}"
 	def userpass = "Basic " + userpassascii.encodeAsBase64().toString()
 
@@ -272,12 +247,17 @@ def updateSettings(){
         headers.put("Authorization", userpass)
     }
     
+    def cookName = settings['cookName']
+    def food1Name = settings['food1Name']
+    def food2Name = settings['food2Name']
+    def food3Name = settings['food3Name']
+    def body = "COOK_NAME=${cookName}&FOOD1_NAME=${food1Name}&FOOD2_NAME=${food2Name}&FOOD3_NAME=${food3Name}"
+    
     def result = new physicalgraph.device.HubAction(
         method: "POST",
         path: "/",
         headers: headers,
-        //body: """${parameter}=${value}"""
-       body: "COOK_NAME=${cookName}&FOOD1_NAME=${food1Name}&FOOD2_NAME=${food2Name}&FOOD3_NAME=${food3Name}"
+       	body: body
        )
 }	
 
@@ -324,27 +304,10 @@ private String convertIPtoHex(ipAddress) {
 
 private String convertPortToHex(port) {
 	String hexport = port.toString().format( '%04x', port.toInteger() )
-    //log.debug hexport
+    //log.debug "Port entered is $port and the converted hex code is $hexport"
     return hexport
 }
 
-private Integer convertHexToInt(hex) {
-	Integer.parseInt(hex,16)
-}
-
-
-private String convertHexToIP(hex) {
-	//log.debug("Convert hex to ip: $hex") 
-	[convertHexToInt(hex[0..1]),convertHexToInt(hex[2..3]),convertHexToInt(hex[4..5]),convertHexToInt(hex[6..7])].join(".")
-}
-
-private getHostAddress() {
-	def parts = device.deviceNetworkId.split(":")
-    //log.debug device.deviceNetworkId
-	def ip = convertHexToIP(parts[0])
-	def port = convertHexToInt(parts[1])
-	return ip + ":" + port
-}
 private convertTemp(String temp){
 	def formattedTemp
 	if (temp == 'OPEN'){
@@ -356,8 +319,8 @@ private convertTemp(String temp){
 }
 private convertStatus(statusNum){
 	def status
-    // 0 "OK", 1 "HIGH", 2 "LOW", 3 "DONE", 4 "ERROR", 5 "HOLD", 6 "ALARM", 7 "SHUTDOWN"
     switch(statusNum){
+    // 0 "OK", 1 "HIGH", 2 "LOW", 3 "DONE", 4 "ERROR", 5 "HOLD", 6 "ALARM", 7 "SHUTDOWN"
 	case '0':
 		status = 'OK'
      	break
