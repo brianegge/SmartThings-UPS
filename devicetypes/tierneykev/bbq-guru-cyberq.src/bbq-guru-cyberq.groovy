@@ -195,6 +195,7 @@ def parse(description) {
 	//log.debug "Parsing '${description}'"
 	def result = []
 	def msg = parseLanMessage(description)
+    //log.debug "msg: ${msg}"
     //log.debug "body: ${msg.body}"
     //log.debug "xml: ${msg.xml}"
     
