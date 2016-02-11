@@ -862,7 +862,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport 
             break;
             
     	case 0x04: // Vacation (unlock using code)
-        	map = [name: "codeunlock", descriptionText: "Unlock Using Code Setting", displayed: true, isStateChange: true]
+        	map = [name: "codeunlock", descriptionText: "Unlock using code", displayed: true, isStateChange: true]
             switch (cmd.configurationValue[0]) {
             	case 0:
             		map.value = "enabled"
@@ -947,7 +947,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport 
             break;
             
     	case 0x0F: // Auto lock
-        	map = [name: "autolock", descriptionText: "Auto Unlock Setting", displayed: true, isStateChange: true]
+        	map = [name: "autolock", descriptionText: "Auto unlock", displayed: true, isStateChange: true]
             switch (cmd.configurationValue[0]) {
             	case 0:
             		map.value = "disabled"
