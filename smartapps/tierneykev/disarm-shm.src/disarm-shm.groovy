@@ -45,7 +45,8 @@ def updated() {
 
 def initialize() {
 	// TODO: subscribe to attributes, devices, locations, etc.
-	sendLocationEvent(name: "alarmSystemStatus", value: "off")
+    log.debug "Init"
+	sendLocationEvent(name: "Security", value: "dismissIncident")
 }
 
 // TODO: implement event handlers
