@@ -54,12 +54,10 @@ def thermostatHandler(evt){
     //IFTTT supports up to 3 variables - value1, value2, value3
     //For this app Value 1 = Thermostat State, Value 2 = Current Temp, Value 3 = Current Setpoint
   	try {
-        httpPost(apiURL, 
-        body: [value1: thermostat.currentValue("thermostatOperatingState"), value2: thermostat.currentValue("temperature"), value3:thermostat.currentValue("thermostatSetpoint")]) {
-        //"value1=${thermostat.currentValue("thermostatOperatingState")}&value2=${thermostat.currentValue("temperature")}&value3=${thermostat.currentValue("thermostatSetpoint")}") { resp ->
-            log.debug "response data: ${resp.data}"
-            log.debug "response contentType: ${resp.contentType}"
+    	httpPost( uri: apiURL, body: [value1: thermostat.currentValue("thermostatOperatingState"), value2: thermostat.currentValue("temperature"), value3:thermostat.currentValue("thermostatSetpoint")])  {
+            response -> log.debug (response.data)
         }
+ 
 	} catch (e) {
     	log.debug "something went wrong: $e"
 	}
