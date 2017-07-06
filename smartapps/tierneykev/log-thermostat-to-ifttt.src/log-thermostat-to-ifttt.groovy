@@ -55,7 +55,8 @@ def thermostatHandler(evt){
     //For this app Value 1 = Thermostat State, Value 2 = Current Temp, Value 3 = Current Setpoint
   	try {
         httpPost(apiURL, 
-        "value1=${thermostat.currentValue("thermostatOperatingState")}&value2=${thermostat.currentValue("temperature")}&value3=${thermostat.currentValue("thermostatSetpoint")}") { resp ->
+        body: [value1: thermostat.currentValue("thermostatOperatingState"), value2: thermostat.currentValue("temperature"), value3:thermostat.currentValue("thermostatSetpoint")]) {
+        //"value1=${thermostat.currentValue("thermostatOperatingState")}&value2=${thermostat.currentValue("temperature")}&value3=${thermostat.currentValue("thermostatSetpoint")}") { resp ->
             log.debug "response data: ${resp.data}"
             log.debug "response contentType: ${resp.contentType}"
         }
