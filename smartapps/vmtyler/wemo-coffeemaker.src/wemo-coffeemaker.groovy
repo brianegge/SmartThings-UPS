@@ -1,8 +1,18 @@
 /**
  *  Wemo Crockpot Service Manager
  *
- *  Author: Kevin Tierney
- *  Date: 2013-09-06
+ *
+ *	Author:  Tyler Britten  with special thanks to and code from Kevin Tierney and Brian Keifer
+ *
+ *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *	in compliance with the License. You may obtain a copy of the License at:
+ *
+ *			http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *	for the specific language governing permissions and limitations under the License.
+ *
  */
 definition(
     name: "Wemo Coffee",
@@ -178,9 +188,9 @@ def addcoffeemakers() {
 		}
 
 		if (!d) {
-			log.debug "Creating WeMo Crockpot with dni: ${selectedCoffeemaker.value.mac}"
+			log.debug "Creating WeMo Coffeemaker with dni: ${selectedCoffeemaker.value.mac}"
 			d = addChildDevice("vmtyler", "Wemo Coffeemaker", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
-				"label": selectedCoffeemaker?.value?.name ?: "Wemo Crockpot",
+				"label": selectedCoffeemaker?.value?.name ?: "Wemo Coffeemaker",
 				"data": [
 					"mac": selectedCoffeemaker.value.mac,
 					"ip": selectedCoffeemaker.value.ip,
@@ -257,13 +267,13 @@ if (parsedEvent?.ssdpTerm?.contains("Belkin:device:CoffeeMaker")) {
 		def bodyString = new String(parsedEvent.body.decodeBase64())
 		def body = new XmlSlurper().parseText(bodyString)
 
-		if (body?.device?.deviceType?.text().startsWith("urn:Belkin:device:crockpot:1"))
+		if (body?.device?.deviceType?.text().startsWith("urn:Belkin:device:CoffeeMaker:1"))
 		{
 			def coffeemakers = getWemoCoffeemakers()
-			def wemoCrockpot = coffeemakers.find {it?.key?.contains(body?.device?.UDN?.text())}
-			if (wemoCrockpot)
+			def wemoCoffeemaker = coffeemakers.find {it?.key?.contains(body?.device?.UDN?.text())}
+			if (wemoCoffeemaker)
 			{
-				wemoCrockpot.value << [name:body?.device?.friendlyName?.text(), verified: true]
+				wemoCoffeemaker.value << [name:body?.device?.friendlyName?.text(), verified: true]
 			}
 			else
 			{
