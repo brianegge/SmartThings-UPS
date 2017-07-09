@@ -220,43 +220,25 @@ private subscribeAction(path, callbackPath="") {
         headers: [
             HOST: ip,
             CALLBACK: "<http://${address}/notify$callbackPath>",
-            NT: "upnp:event"
+            NT: "upnp:event",
+            TIMEOUT: "Second-28800"
         ]
     )
 
     log.trace "SUBSCRIBE $path"
-    log.trace "RESULT: ${result}"
+    sendHubCommand(result) 
     return result
 }
-def subscribe(hostAddress) {
-    log.debug "Subscribing to ${hostAddress}"
-    subscribeAction("/upnp/event/deviceevent1")
-}
-
 def subscribe() {
-    subscribe(getHostAddress())
-}
-
-def subscribe(ip, port) {
-    def existingIp = getDataValue("ip")
-    def existingPort = getDataValue("port")
-    if (ip && ip != existingIp) {
-        log.debug "Updating ip from $existingIp to $ip"
-        updateDataValue("ip", ip)
-    }
-    if (port && port != existingPort) {
-        log.debug "Updating port from $existingPort to $port"
-        updateDataValue("port", port)
-    }
-
-    subscribe("${ip}:${port}")
+    log.debug "Subscribing to ${getHostAddress()}"
+    subscribeAction("/upnp/event/basicevent1")
 }
 
 def resubscribe() {
     //log.debug "Executing 'resubscribe()'"
     def sid = getDeviceDataByName("subscriptionId")
 
-    new physicalgraph.device.HubAction("""SUBSCRIBE /upnp/event/deviceevent1 HTTP/1.1
+    new physicalgraph.device.HubAction("""SUBSCRIBE /upnp/event/basicevent1 HTTP/1.1
     HOST: ${getHostAddress()}
     SID: uuid:${sid}
     TIMEOUT: Second-5400
@@ -271,3 +253,5 @@ def unsubscribe() {
     SID: uuid:${sid}
     """, physicalgraph.device.Protocol.LAN)
 }
+
+ß
