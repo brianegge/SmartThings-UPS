@@ -31,22 +31,19 @@ metadata {
       standardTile("refresh", "refresh",label:"Refresh",width:2,height:2,decoration: "flat") {
         state "default", action:"refresh", icon:"st.secondary.refresh"
       }
-      standardTile("brew", "brew",label:"Coffeemaker",width:2,height:2,decoration: "flat") {
-        state "default", label:'BREW',action: "momentary.push",icon:"st.Appliances.appliances14"
-      }
-     valueTile("Mode","device.brewMode",width:6,height:4){
-        state "PlaceCarafe", label:'Place Carafe',backgroundColor:"#e86d13"
-        state "Refill", label:'Refill',backgroundColor:"#e86d13"
-        state "RefillWater", label:'Refill Water',backgroundColor:"#e86d13"
-        state "Ready", label:'Ready',backgroundColor:"#ffffff",defaultState: true
-        state "Brewing", label:'Brewing',backgroundColor:"#00a0dc"
-        state "Brewed", label:'Coffee is Brewed',backgroundColor:"#44b621"
-        state "CleaningBrewing", label:'Cleaning - Brewing',backgroundColor:"#e86d13"
-        state "CleaningSoaking", label:'Cleaning - Soaking',backgroundColor:"#e86d13"
-        state "BrewFailCarafeRemoved", label:'Brew Fail - Carafe Removed',backgroundColor:"#e86d13"
+     standardTile("Mode","device.brewMode",width:6,height:4,decoration: "flat"){
+        state "PlaceCarafe", label:'Place Carafe',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "Refill", label:'Refill',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "RefillWater", label:'Refill Water',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "Ready", label:'Ready',backgroundColor:"#ffffff",icon:"st.Appliances.appliances14",action: "momentary.push"
+        state "Brewing", label:'Brewing',backgroundColor:"#00a0dc",icon:"st.Appliances.appliances14"
+        state "Brewed", label:'Coffee is Brewed',backgroundColor:"#44b621",icon:"st.Appliances.appliances14"
+        state "CleaningBrewing", label:'Cleaning - Brewing',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "CleaningSoaking", label:'Cleaning - Soaking',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "BrewFailCarafeRemoved", label:'Brew Fail - Carafe Removed',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
       }			
-      main "brew"
-      details(["Mode","brew","refresh"])
+      main "Mode"
+      details(["Mode","refresh"])
       }
 }
 
