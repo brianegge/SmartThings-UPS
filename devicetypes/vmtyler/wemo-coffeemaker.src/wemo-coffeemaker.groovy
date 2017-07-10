@@ -81,6 +81,7 @@ def parse(String description) {
             //log.debug("ELSE!: ${body.Body}")
             def mode = body.Body.GetAttributesResponse.attributeList.attribute.find {it.name == "Mode"}.value.text()
             def notifymode = body.property.attributeList.attribute.find {it.name == "Mode"}.value.text()
+            def notifymodetime = body.property.attributeList.attribute.find {it.name == "ModeTime"}.value.text()
             if(mode){
                 def currentMode = getModeName(mode)
                 result << createEvent(name: "brewMode", value: currentMode) 
@@ -89,8 +90,9 @@ def parse(String description) {
                 def currentMode = getModeName(notifymode)
                 result << createEvent(name: "brewMode", value: currentMode) 
                 log.debug "Received getCMState NOTIFY mode:  " + currentMode 
-            } 
-            else{
+            } else if (notifymodetime){
+                log.debug "Received getCMState NOTIFY modetime:  " + notifymodetime 
+            } else{
                 log.debug "Other Response: \nHeader: " + evtHeader + "\nBody: " + evtBody
  				}
    		    return result
@@ -238,19 +240,19 @@ def resubscribe() {
     //log.debug "Executing 'resubscribe()'"
     def sid = getDeviceDataByName("subscriptionId")
 
-    new physicalgraph.device.HubAction("""SUBSCRIBE /upnp/event/basicevent1 HTTP/1.1
+    sendHubCommand(new physicalgraph.device.HubAction("""SUBSCRIBE /upnp/event/basicevent1 HTTP/1.1
     HOST: ${getHostAddress()}
     SID: uuid:${sid}
     TIMEOUT: Second-5400
-    """, physicalgraph.device.Protocol.LAN)
+    """, physicalgraph.device.Protocol.LAN))
 
 }
 
 def unsubscribe() {
     def sid = getDeviceDataByName("subscriptionId")
-    new physicalgraph.device.HubAction("""UNSUBSCRIBE publisher path HTTP/1.1
+    sendHubCommand(new physicalgraph.device.HubAction("""UNSUBSCRIBE publisher path HTTP/1.1
     HOST: ${getHostAddress()}
     SID: uuid:${sid}
-    """, physicalgraph.device.Protocol.LAN)
+    """, physicalgraph.device.Protocol.LAN))
 }
 
