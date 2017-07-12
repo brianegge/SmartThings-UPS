@@ -82,7 +82,6 @@ def parse(String description) {
             def mode = body.Body.GetAttributesResponse.attributeList.attribute.find {it.name == "Mode"}.value.text()
             def notifymode = body.property.attributeList.attribute.find {it.name == "Mode"}.value.text()
             def notifymodetime = body.property.attributeList.attribute.find {it.name == "ModeTime"}.value.text()
-            log.debug "Current Level: " + level 
             if(mode){
                 def currentMode = getModeName(mode)
                 result << createEvent(name: "brewMode", value: currentMode) 
