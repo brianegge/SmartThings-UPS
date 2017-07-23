@@ -31,19 +31,30 @@ metadata {
       standardTile("refresh", "refresh",label:"Refresh",width:2,height:2,decoration: "flat") {
         state "default", action:"refresh", icon:"st.secondary.refresh"
       }
-     standardTile("Mode","device.brewMode",width:6,height:4,decoration: "flat"){
+     valueTile("Status","device.brewMode",width:6,height:4,decoration: "flat"){
         state "PlaceCarafe", label:'Place Carafe',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
         state "Refill", label:'Refill',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
         state "RefillWater", label:'Refill Water',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "Ready", label:'BREW',backgroundColor:"#ffffff",icon:"st.Appliances.appliances14",action: "momentary.push"
+        state "Ready", label:'Ready to Brew',backgroundColor:"#ffffff",icon:"st.Appliances.appliances14"
         state "Brewing", label:'Brewing',backgroundColor:"#00a0dc",icon:"st.Appliances.appliances14"
         state "Brewed", label:'Coffee is Brewed',backgroundColor:"#44b621",icon:"st.Appliances.appliances14"
         state "CleaningBrewing", label:'Cleaning - Brewing',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
         state "CleaningSoaking", label:'Cleaning - Soaking',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
         state "BrewFailCarafeRemoved", label:'Brew Fail - Carafe Removed',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
       }			
-      main "Mode"
-      details(["Mode","refresh"])
+      standardTile("Action", "device.brewMode",width:2,height:2,decoration: "flat") {
+        state "PlaceCarafe", label:'Not Ready',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "Refill", label:'Not Ready',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "RefillWater", label:'Not Ready',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "Ready", label:'BREW',backgroundColor:"#ffffff",icon:"st.Appliances.appliances14",action: "momentary.push"
+        state "Brewing", label:'Brewing',backgroundColor:"#00a0dc",icon:"st.Appliances.appliances14"
+        state "Brewed", label:'Brewed',backgroundColor:"#44b621",icon:"st.Appliances.appliances14"
+        state "CleaningBrewing", label:'Cleaning',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "CleaningSoaking", label:'Cleaning',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+        state "BrewFailCarafeRemoved", label:'Brew Fail',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
+      }
+      main "Action"
+      details(["Status","Action","refresh"])
       }
 }
 
@@ -82,6 +93,7 @@ def parse(String description) {
             def mode = body.Body.GetAttributesResponse.attributeList.attribute.find {it.name == "Mode"}.value.text()
             def notifymode = body.property.attributeList.attribute.find {it.name == "Mode"}.value.text()
             def notifymodetime = body.property.attributeList.attribute.find {it.name == "ModeTime"}.value.text()
+            log.debug "Current Level: " + level 
             if(mode){
                 def currentMode = getModeName(mode)
                 result << createEvent(name: "brewMode", value: currentMode) 
