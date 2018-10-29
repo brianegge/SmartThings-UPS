@@ -47,6 +47,7 @@ void deviceDescriptionHandler(physicalgraph.device.HubResponse hubResponse) {
     def devices = getUpsDevices()
     def device = devices.find { it?.key?.contains(body?.device?.UDN?.text()) }
     if (device) {
+        log.debug "deviceDescriptionHandler :: ${body}"
         device.value << [name: body?.device?.friendlyName?.text(), model: body?.device?.modelName?.text(), serialNumber: body?.device?.serialNum?.text(), verified: true]
     }
 }
@@ -190,7 +191,7 @@ def adddevices() {
     if (!d) {
       log.debug "Creating Ups Device with dni: ${selectedCoffeemaker.value.mac}"
       d = addChildDevice("brianegge", "UPS", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
-        "label": selectedCoffeemaker?.value?.name ?: "Generic Ups Device",
+        "label": selectedCoffeemaker?.value?.model ?: "Generic Ups Device",
         "data": [
           "mac": selectedCoffeemaker.value.mac,
           "ip": selectedCoffeemaker.value.ip,
