@@ -29,6 +29,7 @@ preferences {
 
 private discoverAllUpsTypes()
 {
+		log.debug "Discovering UPS types"
     sendHubCommand(new physicalgraph.device.HubAction("lan discovery urn:schemas-upnp-org:device:UPS:1", physicalgraph.device.Protocol.LAN))
 }
 
@@ -58,7 +59,7 @@ def firstPage()
 		state.refreshCount = refreshCount + 1
 		def refreshInterval = 5
 
-		//log.debug "REFRESH COUNT :: ${refreshCount}"
+		log.debug "REFRESH COUNT :: ${refreshCount}"
 
 		if(!state.subscribe) {
 			subscribe(location, null, locationHandler, [filterEvents:false])
@@ -99,8 +100,8 @@ To update your Hub, access Location Settings in the Main Menu (tap the gear next
 }
 
 def devicesDiscovered() {
-    def devices = getUpsDevices()
-    //log.debug "devicesDiscovered :: ${devices}"
+  def devices = getUpsDevices()
+  log.debug "devicesDiscovered :: ${devices}"
 	def list = []
 	list = devicest{ [app.id, it.ssdpUSN].join('.') }
 }
@@ -108,10 +109,10 @@ def devicesDiscovered() {
 
 def devicesDiscovered() {
 	def devices = getUpsDevices().findAll { it?.value?.verified == true }
-    //log.debug "DevicesDiscovered :: ${devices}"
+    log.debug "DevicesDiscovered :: ${devices}"
 	def map = [:]
 	devices.each {
-		def value = it.value.name ?: "Ups Coffeemaker ${it.value.ssdpUSN.split(':')[1][-3..-1]}"
+		def value = it.value.name ?: "Ups Device ${it.value.ssdpUSN.split(':')[1][-3..-1]}"
 		def key = it.value.mac
 		map["${key}"] = value
 	}
@@ -187,9 +188,9 @@ def adddevices() {
 		}
 
 		if (!d) {
-			log.debug "Creating Ups Coffeemaker with dni: ${selectedCoffeemaker.value.mac}"
-			d = addChildDevice("vmtyler", "Ups Coffeemaker", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
-				"label": selectedCoffeemaker?.value?.name ?: "Ups Coffeemaker",
+			log.debug "Creating Ups Device with dni: ${selectedCoffeemaker.value.mac}"
+			d = addChildDevice("vmtyler", "Ups Device", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
+				"label": selectedCoffeemaker?.value?.name ?: "Ups Device",
 				"data": [
 					"mac": selectedCoffeemaker.value.mac,
 					"ip": selectedCoffeemaker.value.ip,
@@ -221,7 +222,7 @@ def locationHandler(evt) {
 	def parsedEvent = parseDiscoveryMessage(description)
 	parsedEvent << ["hub":hub]
 
-if (parsedEvent?.ssdpTerm?.contains("Belkin:device:CoffeeMaker")) {
+if (parsedEvent?.ssdpTerm?.contains("schemas-upnp-org:device:UPS")) {
 
 		def devices = getUpsDevices()
 

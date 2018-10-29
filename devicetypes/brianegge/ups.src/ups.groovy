@@ -191,13 +191,13 @@ def setAttribute(name, value) {
 	<?xml version="1.0" encoding="utf-8"?>
 	<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
 	<s:Body>
-	<u:SetAttributes xmlns:u="urn:Belkin:service:deviceevent:1">
+	<u:SetAttributes xmlns:u="urn:ups.example.com:service:UPS:1">
 	<attributeList>&lt;attribute&gt;&lt;name&gt;${name}&lt;/name&gt;&lt;value&gt;${value}&lt;/value&gt;&lt;/attribute&gt;</attributeList>
 	</u:SetAttributes>
 	</s:Body>
 	</s:Envelope>
 	"""
-	postRequest('/upnp/control/deviceevent1', 'urn:Belkin:service:deviceevent:1#SetAttributes', body)
+	postRequest('/upnp/control/deviceevent1', 'urn:ups.example.com:service:deviceevent:1#SetAttributes', body)
 }
 
 
@@ -207,12 +207,12 @@ def getAttributes() {
     <?xml version="1.0" encoding="utf-8"?>
     <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
     <s:Body>
-    <u:GetAttributes xmlns:u="urn:Belkin:service:deviceevent:1">
+    <u:GetAttributes xmlns:u="urn:ups.example.com:service:deviceevent:1">
     </u:GetAttributes>
     </s:Body>
     </s:Envelope>
     """
-    postRequest('/upnp/control/deviceevent1', 'urn:Belkin:service:deviceevent:1#GetAttributes', body)
+    postRequest('/upnp/control/deviceevent1', 'urn:ups.example.com:service:deviceevent:1#GetAttributes', body)
 }
 
 def refresh() {
