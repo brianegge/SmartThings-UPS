@@ -1,8 +1,7 @@
 /**
- *  Wemo Crockpot Service Manager
+ *  UPS Service Manager
  *
- *
- *	Author:  Tyler Britten  with special thanks to and code from Kevin Tierney and Brian Keifer
+ *	Author:  Brian Egge based on code from Tyler Britten
  *
  *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *	in compliance with the License. You may obtain a copy of the License at:
@@ -18,7 +17,7 @@ definition(
     name: "UPS",
     namespace: "brianegge",
     author: "Brian Egge",
-    description: "Allows you to integrate your WeMo Coffeemaker with SmartThings.",
+    description: "Allows you to integrate your UPS with SmartThings.",
     category: "My Apps",
     iconUrl: "http://cdn.device-icons.smartthings.com/Appliances/appliances17-icn.png",
     iconX2Url: "http://cdn.device-icons.smartthings.com/Appliances/appliances17-icn@2x.png"
@@ -28,14 +27,14 @@ preferences {
 	page(name:"firstPage", title:"UPS Device Setup", content:"firstPage")
 }
 
-private discoverAllWemoTypes()
+private discoverAllUpsTypes()
 {
-    sendHubCommand(new physicalgraph.device.HubAction("lan discovery urn:Belkin:device:CoffeeMaker:1", physicalgraph.device.Protocol.LAN))
+    sendHubCommand(new physicalgraph.device.HubAction("lan discovery urn:schemas-upnp-org:device:UPS:1", physicalgraph.device.Protocol.LAN))
 }
 
 private verifyDevices() {
-	def coffeemakers = getWemoCoffeemakers().findAll { it?.value?.verified != true }
-	coffeemakers.each {
+	def devices = getUpsDevices().findAll { it?.value?.verified != true }
+	devices.each {
         int port = convertHexToInt(it.value.port)
         String ip = convertHexToIP(it.value.ip)
         String host = "${ip}:${port}"
@@ -44,7 +43,7 @@ private verifyDevices() {
 }
 void deviceDescriptionHandler(physicalgraph.device.HubResponse hubResponse) {
     def body = hubResponse.xml
-    def devices = getWemoCoffeemakers()
+    def devices = getUpsDevices()
     def device = devices.find { it?.key?.contains(body?.device?.UDN?.text()) }
     if (device) {
         device.value << [name: body?.device?.roomName?.text(), model: body?.device?.modelName?.text(), serialNumber: body?.device?.serialNum?.text(), verified: true]
@@ -68,7 +67,7 @@ def firstPage()
 
 		//ssdp request every 25 seconds
 		if((refreshCount % 5) == 0) {
-			discoverAllWemoTypes()
+			discoverAllUpsTypes()
 		}
 
 		//setup.xml request every 5 seconds except on discoveries
@@ -77,11 +76,11 @@ def firstPage()
 		}
 
 
-        def coffeemakersDiscovered = coffeemakersDiscovered()
+        def devicesDiscovered = devicesDiscovered()
 
 		return dynamicPage(name:"firstPage", title:"Discovery Started!", nextPage:"", refreshInterval: refreshInterval, install:true, uninstall: selectedSwitches != null || selectedMotions != null || selectedLightSwitches != null) {
 			section("Select a device...") {
-                input "selectedcoffeemakers", "enum", required:false, title:"Select Wemo Coffeemakers \n(${coffeemakersDiscovered.size() ?: 0} found)", multiple:true, options:coffeemakersDiscovered
+                input "selecteddevices", "enum", required:false, title:"Select Ups Devices \n(${devicesDiscovered.size() ?: 0} found)", multiple:true, options:devicesDiscovered
 			}
 		}
 	}
@@ -100,19 +99,19 @@ To update your Hub, access Location Settings in the Main Menu (tap the gear next
 }
 
 def devicesDiscovered() {
-    def coffeemakers = getWemoCoffeemakers()
-    //log.debug "devicesDiscovered :: ${coffeemakers}"
+    def devices = getUpsDevices()
+    //log.debug "devicesDiscovered :: ${devices}"
 	def list = []
-	list = coffeemakerst{ [app.id, it.ssdpUSN].join('.') }
+	list = devicest{ [app.id, it.ssdpUSN].join('.') }
 }
 
 
-def coffeemakersDiscovered() {
-	def coffeemakers = getWemoCoffeemakers().findAll { it?.value?.verified == true }
-    //log.debug "CoffeemakersDiscovered :: ${coffeemakers}"
+def devicesDiscovered() {
+	def devices = getUpsDevices().findAll { it?.value?.verified == true }
+    //log.debug "DevicesDiscovered :: ${devices}"
 	def map = [:]
-	coffeemakers.each {
-		def value = it.value.name ?: "Wemo Coffeemaker ${it.value.ssdpUSN.split(':')[1][-3..-1]}"
+	devices.each {
+		def value = it.value.name ?: "Ups Coffeemaker ${it.value.ssdpUSN.split(':')[1][-3..-1]}"
 		def key = it.value.mac
 		map["${key}"] = value
 	}
@@ -121,10 +120,10 @@ def coffeemakersDiscovered() {
 
 
 
-def getWemoCoffeemakers()
+def getUpsDevices()
 {
-	if (!state.coffeemakers) { state.coffeemakers = [:] }
-	state.coffeemakers
+	if (!state.devices) { state.devices = [:] }
+	state.devices
 }
 
 def installed() {
@@ -175,11 +174,11 @@ def subscribeToDevices() {
 		d.subscribe()
 	}
 }
-def addcoffeemakers() {
-	def coffeemakers = getWemoCoffeemakers()
+def adddevices() {
+	def devices = getUpsDevices()
 
-	selectedcoffeemakers.each { dni ->
-		def selectedCoffeemaker = coffeemakers.find { it.value.mac == dni } ?: switches.find { "${it.value.ip}:${it.value.port}" == dni }
+	selecteddevices.each { dni ->
+		def selectedCoffeemaker = devices.find { it.value.mac == dni } ?: switches.find { "${it.value.ip}:${it.value.port}" == dni }
 		def d
 		if (selectedCoffeemaker) {
 			d = getChildDevices()?.find {
@@ -188,9 +187,9 @@ def addcoffeemakers() {
 		}
 
 		if (!d) {
-			log.debug "Creating WeMo Coffeemaker with dni: ${selectedCoffeemaker.value.mac}"
-			d = addChildDevice("vmtyler", "Wemo Coffeemaker", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
-				"label": selectedCoffeemaker?.value?.name ?: "Wemo Coffeemaker",
+			log.debug "Creating Ups Coffeemaker with dni: ${selectedCoffeemaker.value.mac}"
+			d = addChildDevice("vmtyler", "Ups Coffeemaker", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
+				"label": selectedCoffeemaker?.value?.name ?: "Ups Coffeemaker",
 				"data": [
 					"mac": selectedCoffeemaker.value.mac,
 					"ip": selectedCoffeemaker.value.ip,
@@ -210,9 +209,9 @@ def initialize() {
 	 unsubscribe()
 	 state.subscribe = false
     
-    if (selectedcoffeemakers)
+    if (selecteddevices)
 	{
-		addcoffeemakers()
+		adddevices()
 	}
 }
 
@@ -224,18 +223,18 @@ def locationHandler(evt) {
 
 if (parsedEvent?.ssdpTerm?.contains("Belkin:device:CoffeeMaker")) {
 
-		def coffeemakers = getWemoCoffeemakers()
+		def devices = getUpsDevices()
 
-		if (!(coffeemakers."${parsedEvent.ssdpUSN.toString()}"))
+		if (!(devices."${parsedEvent.ssdpUSN.toString()}"))
 		{ //if it doesn't already exist
-			coffeemakers << ["${parsedEvent.ssdpUSN.toString()}":parsedEvent]
+			devices << ["${parsedEvent.ssdpUSN.toString()}":parsedEvent]
 		}
 		else
 		{ // just update the values
 
 			log.debug "Device was already found in state..."
 
-			def d = coffeemakers."${parsedEvent.ssdpUSN.toString()}"
+			def d = devices."${parsedEvent.ssdpUSN.toString()}"
 			boolean deviceChangedValues = false
 
 			if(d.ip != parsedEvent.ip || d.port != parsedEvent.port) {
@@ -269,11 +268,11 @@ if (parsedEvent?.ssdpTerm?.contains("Belkin:device:CoffeeMaker")) {
 
 		if (body?.device?.deviceType?.text().startsWith("urn:schemas-upnp-org:device:UPS:1"))
 		{
-			def coffeemakers = getWemoCoffeemakers()
-			def wemoCoffeemaker = coffeemakers.find {it?.key?.contains(body?.device?.UDN?.text())}
-			if (wemoCoffeemaker)
+			def devices = getUpsDevices()
+			def UpsCoffeemaker = devices.find {it?.key?.contains(body?.device?.UDN?.text())}
+			if (UpsCoffeemaker)
 			{
-				wemoCoffeemaker.value << [name:body?.device?.friendlyName?.text(), verified: true]
+				UpsCoffeemaker.value << [name:body?.device?.friendlyName?.text(), verified: true]
 			}
 			else
 			{
@@ -360,7 +359,7 @@ def doDeviceSync(){
 		state.subscribe = true
 	}
 
-	discoverAllWemoTypes()
+	discoverAllUpsTypes()
 }
 
 def pollChildren() {
