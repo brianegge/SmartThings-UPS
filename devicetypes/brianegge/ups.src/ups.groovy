@@ -15,7 +15,7 @@
  */
 
 metadata {
-		definition (name: "Wemo Coffeemaker", namespace: "vmtyler", author: "Tyler Britten") {
+		definition (name: "UPS", namespace: "brianegge", author: "Brian Egge") {
             capability "Actuator"
             capability "Polling"
 			capability "Refresh"
