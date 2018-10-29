@@ -77,11 +77,11 @@ def firstPage()
     }
 
 
-        def devicesDiscovered = devicesDiscovered()
+        def upsDiscovered = upsDiscovered()
 
     return dynamicPage(name:"firstPage", title:"Discovery Started!", nextPage:"", refreshInterval: refreshInterval, install:true, uninstall: selectedSwitches != null || selectedMotions != null || selectedLightSwitches != null) {
       section("Select a device...") {
-                input "selecteddevices", "enum", required:false, title:"Select Ups Devices \n(${devicesDiscovered.size() ?: 0} found)", multiple:true, options:devicesDiscovered
+                input "selecteddevices", "enum", required:false, title:"Select Ups Devices \n(${upsDiscovered.size() ?: 0} found)", multiple:true, options:upsDiscovered
       }
     }
   }
@@ -107,9 +107,9 @@ def devicesDiscovered() {
 }
 
 
-def devicesDiscovered() {
+def upsDiscovered() {
   def devices = getUpsDevices().findAll { it?.value?.verified == true }
-    log.debug "DevicesDiscovered :: ${devices}"
+    log.debug "upsDiscovered :: ${devices}"
   def map = [:]
   devices.each {
     def value = it.value.name ?: "Ups Device ${it.value.ssdpUSN.split(':')[1][-3..-1]}"
