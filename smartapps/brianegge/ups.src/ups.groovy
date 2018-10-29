@@ -189,7 +189,7 @@ def adddevices() {
 
     if (!d) {
       log.debug "Creating Ups Device with dni: ${selectedCoffeemaker.value.mac}"
-      d = addChildDevice("vmtyler", "Ups Device", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
+      d = addChildDevice("brianegge", "UPS", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
         "label": selectedCoffeemaker?.value?.name ?: "Ups Device",
         "data": [
           "mac": selectedCoffeemaker.value.mac,

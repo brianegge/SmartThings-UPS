@@ -47,7 +47,7 @@ void deviceDescriptionHandler(physicalgraph.device.HubResponse hubResponse) {
     def devices = getUpsDevices()
     def device = devices.find { it?.key?.contains(body?.device?.UDN?.text()) }
     if (device) {
-        device.value << [name: body?.device?.roomName?.text(), model: body?.device?.modelName?.text(), serialNumber: body?.device?.serialNum?.text(), verified: true]
+        device.value << [name: body?.device?.friendlyName?.text(), model: body?.device?.modelName?.text(), serialNumber: body?.device?.serialNum?.text(), verified: true]
     }
 }
 
@@ -77,7 +77,7 @@ def firstPage()
     }
 
 
-        def upsDiscovered = upsDiscovered()
+    def upsDiscovered = upsDiscovered()
 
     return dynamicPage(name:"firstPage", title:"Discovery Started!", nextPage:"", refreshInterval: refreshInterval, install:true, uninstall: selectedSwitches != null || selectedMotions != null || selectedLightSwitches != null) {
       section("Select a device...") {
@@ -109,7 +109,7 @@ def devicesDiscovered() {
 
 def upsDiscovered() {
   def devices = getUpsDevices().findAll { it?.value?.verified == true }
-    log.debug "upsDiscovered :: ${devices}"
+  log.debug "upsDiscovered :: ${devices}"
   def map = [:]
   devices.each {
     def value = it.value.name ?: "Ups Device ${it.value.ssdpUSN.split(':')[1][-3..-1]}"
@@ -189,8 +189,8 @@ def adddevices() {
 
     if (!d) {
       log.debug "Creating Ups Device with dni: ${selectedCoffeemaker.value.mac}"
-      d = addChildDevice("vmtyler", "Ups Device", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
-        "label": selectedCoffeemaker?.value?.name ?: "Ups Device",
+      d = addChildDevice("brianegge", "UPS", selectedCoffeemaker.value.mac, selectedCoffeemaker?.value.hub, [
+        "label": selectedCoffeemaker?.value?.name ?: "Generic Ups Device",
         "data": [
           "mac": selectedCoffeemaker.value.mac,
           "ip": selectedCoffeemaker.value.ip,
