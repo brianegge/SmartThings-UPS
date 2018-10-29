@@ -15,7 +15,7 @@
  *
  */
 definition(
-    name: "Wemo Coffee",
+    name: "Wemo Coffeemaker",
     namespace: "vmtyler",
     author: "Tyler Britten",
     description: "Allows you to integrate your WeMo Coffeemaker with SmartThings.",
