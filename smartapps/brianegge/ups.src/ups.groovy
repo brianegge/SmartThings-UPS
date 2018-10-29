@@ -20,12 +20,12 @@ definition(
     author: "Brian Egge",
     description: "Allows you to integrate your WeMo Coffeemaker with SmartThings.",
     category: "My Apps",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Partner/wemo.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Partner/wemo@2x.png"
+    iconUrl: "http://cdn.device-icons.smartthings.com/Appliances/appliances17-icn.png",
+    iconX2Url: "http://cdn.device-icons.smartthings.com/Appliances/appliances17-icn@2x.png"
 )
 
 preferences {
-	page(name:"firstPage", title:"Wemo Device Setup", content:"firstPage")
+	page(name:"firstPage", title:"UPS Device Setup", content:"firstPage")
 }
 
 private discoverAllWemoTypes()
@@ -267,7 +267,7 @@ if (parsedEvent?.ssdpTerm?.contains("Belkin:device:CoffeeMaker")) {
 		def bodyString = new String(parsedEvent.body.decodeBase64())
 		def body = new XmlSlurper().parseText(bodyString)
 
-		if (body?.device?.deviceType?.text().startsWith("urn:Belkin:device:CoffeeMaker:1"))
+		if (body?.device?.deviceType?.text().startsWith("urn:schemas-upnp-org:device:UPS:1"))
 		{
 			def coffeemakers = getWemoCoffeemakers()
 			def wemoCoffeemaker = coffeemakers.find {it?.key?.contains(body?.device?.UDN?.text())}
@@ -277,7 +277,7 @@ if (parsedEvent?.ssdpTerm?.contains("Belkin:device:CoffeeMaker")) {
 			}
 			else
 			{
-				log.error "/setup.xml returned a wemo device that didn't exist"
+				log.error "/setup.xml returned a ups device that didn't exist"
 			}
 		}
 
