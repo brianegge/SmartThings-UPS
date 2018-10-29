@@ -1,7 +1,7 @@
 /**
- *	Wemo Coffeemaker Switch (Connect)
+ *	UPS Power Monitor
  *
- *	Author:  Tyler Britten  with special thanks to and code from Kevin Tierney and Brian Keifer
+ *	Author:  Brian Egge, based on work by Tyler Britten
  *
  *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *	in compliance with the License. You may obtain a copy of the License at:
@@ -16,46 +16,146 @@
 
 metadata {
 		definition (name: "UPS", namespace: "brianegge", author: "Brian Egge") {
-            capability "Actuator"
-            capability "Polling"
+            capability "Battery"
+            capability "Power Meter"
+            capability "Power Source"
+            capability "Voltage Measurement"
 			capability "Refresh"
-            capability "Momentary"
-            capability "Switch"
-
-            attribute "brewMode", "string"
             
-            command "brew"
+        attribute "input_voltage", "string"
+		attribute "input_frequency", "string"
+        attribute "input_state", "string"
+		attribute "output_voltage", "string"
+        attribute "output_power", "string"
+		attribute "output_percent", "string"
+        attribute "output_source", "string"
+        
+        attribute "battery_percent", "string"
+		attribute "battery_timeremaining", "string"
+		attribute "battery_voltage", "string"
+        
+        attribute "system_alarm", "string"
+        attribute "system_status", "string"
 		}
 
-    tiles(scale: 2) {
-      standardTile("refresh", "refresh",label:"Refresh",width:2,height:2,decoration: "flat") {
-        state "default", action:"refresh", icon:"st.secondary.refresh"
-      }
-     valueTile("Status","device.brewMode",width:6,height:4,decoration: "flat"){
-        state "PlaceCarafe", label:'Place Carafe',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "Refill", label:'Refill',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "RefillWater", label:'Refill Water',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "Ready", label:'Ready to Brew',backgroundColor:"#ffffff",icon:"st.Appliances.appliances14"
-        state "Brewing", label:'Brewing',backgroundColor:"#00a0dc",icon:"st.Appliances.appliances14"
-        state "Brewed", label:'Coffee is Brewed',backgroundColor:"#44b621",icon:"st.Appliances.appliances14"
-        state "CleaningBrewing", label:'Cleaning - Brewing',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "CleaningSoaking", label:'Cleaning - Soaking',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "BrewFailCarafeRemoved", label:'Brew Fail - Carafe Removed',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-      }			
-      standardTile("Action", "device.brewMode",width:2,height:2,decoration: "flat") {
-        state "PlaceCarafe", label:'Not Ready',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "Refill", label:'Not Ready',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "RefillWater", label:'Not Ready',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "Ready", label:'BREW',backgroundColor:"#ffffff",icon:"st.Appliances.appliances14",action: "momentary.push"
-        state "Brewing", label:'Brewing',backgroundColor:"#00a0dc",icon:"st.Appliances.appliances14"
-        state "Brewed", label:'Brewed',backgroundColor:"#44b621",icon:"st.Appliances.appliances14"
-        state "CleaningBrewing", label:'Cleaning',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "CleaningSoaking", label:'Cleaning',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-        state "BrewFailCarafeRemoved", label:'Brew Fail',backgroundColor:"#e86d13",icon:"st.Appliances.appliances14"
-      }
-      main "Action"
-      details(["Status","Action","refresh"])
-      }
+tiles {
+        standardTile("status", "device.system_status", canChangeBackground: true, canChangeIcon: true) {
+      	state "normal", label:'NORMAL', icon: "st.Appliances.appliances17", backgroundColor: "#79b821"
+        state "onbattery", label:"ON BATTERY", icon: "st.Appliances.appliances17", backgroundColor: "#f5b220"
+        state "onbypass", label:"ON BYPASS", icon: "st.Appliances.appliances17", backgroundColor: "#f5b220"
+        state "manualoff", label:"MANUAL OFF", icon: "st.Appliances.appliances17", backgroundColor: "#0000FF"
+        state "fail", label:"FAILURE", icon: "st.Appliances.appliances17", backgroundColor: "#FF0000"
+        }
+             
+        valueTile("inputvoltage", "device.input_voltage", width: 1, height: 1) {
+        state("input_voltage", label:'In ${currentValue} VAC',
+            backgroundColors:[
+                [value: 114, color: "#ff0000"],
+                [value: 115, color: "#ff3b0b"],
+                [value: 116, color: "#fa7616"],
+                [value: 117, color: "#f5b220"],
+                [value: 118, color: "#f1d801"],
+                [value: 119, color: "#b5c811"],
+                [value: 120, color: "#79b821"],
+                [value: 122, color: "#79b821"],
+                [value: 123, color: "#79b821"],
+                [value: 124, color: "#79b821"],
+                [value: 125, color: "#79b821"],
+                [value: 126, color: "#b5c811"],
+                [value: 127, color: "#f1d801"],
+				[value: 128, color: "#f5b220"],
+                [value: 129, color: "#ff0000"]
+            ]
+        )}
+        
+        standardTile("inputstate", "device.input_state", canChangeBackground: false, canChangeIcon: false) {
+      	state "normal",   label:'INPUT OK', icon: "st.switches.switch.on",   backgroundColor: "#79b821"
+      	state "fail", label:'INPUT BAD', icon: "st.switches.switch.off", backgroundColor: "#ff0000"
+        }
+        
+        valueTile("inputfreq", "device.input_frequency", width: 1, height: 1) {
+        state("input_frequency", label:'${currentValue} Hz',
+            backgroundColors:[
+                [value: 57, color: "#ff0000"],
+                [value: 58, color: "#ff3b0b"],
+                [value: 59, color: "#f1d801"],
+                [value: 60, color: "#79b821"],
+                [value: 61, color: "#f1d801"],
+            ]
+        )}
+        
+        valueTile("outputvoltage", "device.output_voltage", width: 1, height: 1) {
+        state("output_voltage", label:'Out ${currentValue} VAC',
+            backgroundColors:[
+                [value: 114, color: "#ff0000"],
+                [value: 115, color: "#ff3b0b"],
+                [value: 116, color: "#fa7616"],
+                [value: 117, color: "#f5b220"],
+                [value: 118, color: "#f1d801"],
+                [value: 119, color: "#b5c811"],
+                [value: 120, color: "#79b821"],
+                [value: 122, color: "#79b821"],
+                [value: 123, color: "#79b821"],
+                [value: 124, color: "#79b821"],
+                [value: 125, color: "#79b821"],
+                [value: 126, color: "#b5c811"],
+                [value: 127, color: "#f1d801"],
+				[value: 128, color: "#f5b220"],
+                [value: 129, color: "#ff0000"]
+            ]
+        )}
+        standardTile("outputsource", "device.output_source", canChangeBackground: false, canChangeIcon: false) {
+      	state "normal", label:'OUTPUT OK', action: "off", icon: "st.switches.switch.on",   backgroundColor: "#79b821"
+      	state "none", label:'OUTPUT OFF', action: "on", icon: "st.switches.switch.off", backgroundColor: "ff0000"
+        state "bypass", label:'IN BYPASS', action: "on", icon: "st.switches.switch.off", backgroundColor: "#f5b220"
+        state "battery", label:'ON BATTERY', icon: "st.switches.switch.off", backgroundColor: "#F6EF1F"
+        }
+        
+        valueTile("loadpercent", "device.output_percent", width: 1, height: 1) {
+        state("output_percent", label:'Load ${currentValue}%',
+            backgroundColors:[
+				[value: 25, color: "#79b821"],
+                [value: 35, color: "#b5c811"],
+                [value: 45, color: "#f1d801"],
+                [value: 55, color: "#f5b220"],
+                [value: 65, color: "#fa7616"],
+                [value: 75, color: "#ff3b0b"],
+                [value: 85, color: "#ff0000"]
+            ]
+        )}
+               
+        valueTile("battery", "device.battery_percent", width: 1, height: 1) {
+        state("battery_percent", label:'Battery ${currentValue}%',
+            backgroundColors:[
+                [value: 25, color: "#ff0000"],
+                [value: 45, color: "#ff3b0b"],
+                [value: 60, color: "#fa7616"],
+                [value: 75, color: "#f5b220"],
+                [value: 85, color: "#f1d801"],
+                [value: 90, color: "#b5c811"],
+                [value: 95, color: "#79b821"]
+            ]
+        )}
+        valueTile("power", "device.output_power", width: 1, height: 1) {
+        state("output_power", label:'${currentValue} W',
+            backgroundColor: "#444444"
+        )}
+        
+        //standardTile("alarm", "device.system_alarm", canChangeBackground: false, canChangeIcon: false, width: 3, height: 1) {
+      	//state "alarm",   label:'ALARM', action: "silenceAlarm", icon: "st.alarm.beep.beep",   backgroundColor: "#ff0000"
+      	//state "normal", label:'SYSTEM OK', icon: "st.alarm.beep.beep", backgroundColor: "#79b821"
+        //}
+        standardTile("refresh", "command.refresh", inactiveLabel: false, decoration: "flat", width: 1, height: 1) 
+        {
+            state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+        }  
+        
+        // This tile will be the tile that is displayed on the Hub page.
+    	main "status"
+
+    	// These tiles will be displayed when clicked on the device, in the order listed here.
+    	details(["inputstate", "inputvoltage", "inputfreq", "power", "battery", "outputvoltage", "loadpercent", "outputsource", "refresh"])
+	}
 }
 
 def parse(String description) {
@@ -70,8 +170,8 @@ def parse(String description) {
     	evtBody = evtBody.replaceAll(~/&gt;/, ">")
 	}
 
-    // log.debug("Header: ${evtHeader}")
-    // log.debug("Body: ${evtBody}")
+    log.debug("Header: ${evtHeader}")
+    log.debug("Body: ${evtBody}")
 
     if (evtHeader?.contains("SID: uuid:")) {
 		def sid = (evtHeader =~ /SID: uuid:.*/) ? ( evtHeader =~ /SID: uuid:.*/)[0] : "0"
@@ -82,33 +182,32 @@ def parse(String description) {
     }
 
     if (evtBody) {
-        //log.debug("evtBody: ${evtBody}")
         def body = new XmlSlurper().parseText(evtBody)
         if (body == 0) {
             log.debug ("Command succeeded!")
             return [getAttributes()]
         } else {
             def result = []
-            //log.debug("ELSE!: ${body.Body}")
-            def mode = body.Body.GetAttributesResponse.attributeList.attribute.find {it.name == "Mode"}.value.text()
-            def notifymode = body.property.attributeList.attribute.find {it.name == "Mode"}.value.text()
-            def notifymodetime = body.property.attributeList.attribute.find {it.name == "ModeTime"}.value.text()
-            log.debug "Current Level: " + level 
-            if(mode){
-                def currentMode = getModeName(mode)
-                result << createEvent(name: "brewMode", value: currentMode) 
-                log.debug "Received getCMState mode:  " + currentMode 
-            } else if (notifymode) {
-                def currentMode = getModeName(notifymode)
-                result << createEvent(name: "brewMode", value: currentMode) 
-                log.debug "Received getCMState NOTIFY mode:  " + currentMode 
-            } else if (notifymodetime){
-                log.debug "Received getCMState NOTIFY modetime:  " + notifymodetime
-            } else{
-                log.debug "Other Response: \nHeader: " + evtHeader + "\nBody: " + evtBody
- 				}
+            result << createEvent(name: "input_voltage", value: body.input_voltage.text())
+            result << createEvent(name: "input_frequency", value: body.input_frequency.text())
+            if (body.ups_status.text() == "OL") { 
+              result << createEvent(name: "system_status", value: "normal")
+              result << createEvent(name: "input_state", value: "normal")
+              result << createEvent(name: "output_source", value: "normal")
+            } else if (body.ups_status.text() == "OB" || body.ups_status.text() == "LB") { 
+              result << createEvent(name: "system_status", value: "onbattery")
+              result << createEvent(name: "input_state", value: "fail")
+              result << createEvent(name: "output_source", value: "battery")
+            }
+            result << createEvent(name: "output_voltage", value: body.output_voltage.text())
+            result << createEvent(name: "output_power", value: body.ups_power.text())
+            result << createEvent(name: "output_percent", value: Double.parseDouble(body.ups_power.text()) / Double.parseDouble(body.ups_power_nominal.text()) * 100.0 )
+            result << createEvent(name: "battery_voltage", value: body.battery_voltage.text())
+            result << createEvent(name: "battery_timeremaining", value: body.battery_runtime.text())
+            result << createEvent(name: "battery_percent", value: body.battery_charge.text())
+
    		    return result
-   	 		}
+   	 	}
      }
 } // end parse
 
@@ -161,45 +260,15 @@ private postRequest(path, SOAPaction, body) {
     return result
 }
 
+def updated() {
+   log.debug "updated()"
+   unschedule(poll)
+   runEvery1Minute(poll)
+}
+
 def poll() {
-	refresh()
+	getAttributes()
 }
-def on() {
-        push()
-}
-def push(){
-	//Sets up on command based on defaults
-	log.trace "Brew Called"
-    setAttribute("Mode",4)
-}
-private getModeName(modeNum){
-	log.debug "getModeName: " + modeNum
-    def numToMode = ['0':'Refill',
-                     '1': 'PlaceCarafe',
-                     '2': 'RefillWater',
-                     '3':'Ready',
-                     '4':'Brewing',
-                     '5': 'Brewed',
-                     '6': 'CleaningBrewing',
-                     '7': 'CleaningSoaking',
-                     '8':'BrewFailCarafeRemoved']
-	return numToMode.get(modeNum)
-}
-
-def setAttribute(name, value) {
-	def body = """
-	<?xml version="1.0" encoding="utf-8"?>
-	<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-	<s:Body>
-	<u:SetAttributes xmlns:u="urn:ups.example.com:service:UPS:1">
-	<attributeList>&lt;attribute&gt;&lt;name&gt;${name}&lt;/name&gt;&lt;value&gt;${value}&lt;/value&gt;&lt;/attribute&gt;</attributeList>
-	</u:SetAttributes>
-	</s:Body>
-	</s:Envelope>
-	"""
-	postRequest('/upnp/control/deviceevent1', 'urn:ups.example.com:service:deviceevent:1#SetAttributes', body)
-}
-
 
 def getAttributes() {
     log.debug("getAttributes()")
