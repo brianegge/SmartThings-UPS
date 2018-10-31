@@ -7,3 +7,4 @@ Device driver for monitoring a UPS
  * Download and run https://github.com/brianegge/upnp-ups-service 
  * Install this service manager and device handler into your IDE
  
+![screenshot](https://raw.githubusercontent.com/brianegge/SmartThings-UPS/master/ups-screenshot.png)
