@@ -21,6 +21,7 @@ metadata {
 		capability "Power Source"
 		capability "Voltage Measurement"
 		capability "Refresh"
+		capability "Sensor"
             
 		attribute "input_voltage", "string"
 		attribute "input_frequency", "string"
