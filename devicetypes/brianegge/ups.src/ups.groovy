@@ -193,15 +193,19 @@ def parse(String description) {
 			def result = []
 			result << createEvent(name: "input_voltage", value: body.input_voltage.text())
 			result << createEvent(name: "input_frequency", value: body.input_frequency.text())
-			if (body.ups_status.text() == "OL") { 
+			if (body.ups_status.text().startsWith("OL")) { 
 				result << createEvent(name: "system_status", value: "normal")
 				result << createEvent(name: "input_state", value: "normal")
 				result << createEvent(name: "output_source", value: "normal")
-			} else if (body.ups_status.text() == "OB" || body.ups_status.text() == "LB") { 
+			} else if (body.ups_status.text().startsWith("OB") || body.ups_status.text().startsWith("LB") ) { 
 				result << createEvent(name: "system_status", value: "onbattery")
 				result << createEvent(name: "input_state", value: "fail")
 				result << createEvent(name: "output_source", value: "battery")
-			}
+			} else {
+            	result << createEvent(name: "system_status", value: "fail")
+				result << createEvent(name: "input_state", value: "fail")
+                log.warning("Unknown state '" + body.ups_status.text() + "'")
+            }
 			result << createEvent(name: "output_voltage", value: body.output_voltage.text())
 			result << createEvent(name: "output_power", value: body.ups_power.text())
 			result << createEvent(name: "output_percent", value: Double.parseDouble(body.ups_power.text()) / Double.parseDouble(body.ups_power_nominal.text()) * 100.0 )
