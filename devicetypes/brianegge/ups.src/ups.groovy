@@ -34,6 +34,7 @@ metadata {
 		attribute "battery_percent", "string"
 		attribute "battery_timeremaining", "string"
 		attribute "battery_voltage", "string"
+		attribute "battery_nominal", "string"
         
 		attribute "system_alarm", "string"
 		attribute "system_status", "string"
@@ -58,6 +59,7 @@ metadata {
 		valueTile("inputvoltage", "device.input_voltage", width: 2, height: 2) {
 			state("input_voltage", label:'In ${currentValue} VAC',
 			backgroundColors:[
+                [value: 0,   color: "#cccccc"],
 				[value: 114, color: "#ff0000"],
 				[value: 115, color: "#ff3b0b"],
 				[value: 116, color: "#fa7616"],
@@ -65,9 +67,6 @@ metadata {
 				[value: 118, color: "#f1d801"],
 				[value: 119, color: "#b5c811"],
 				[value: 120, color: "#79b821"],
-			//	[value: 122, color: "#79b821"], // dont think you need these
-			//	[value: 123, color: "#79b821"], // 3 as there is no change in
-			//	[value: 124, color: "#79b821"], // value between them
 				[value: 125, color: "#79b821"],
 				[value: 126, color: "#b5c811"],
 				[value: 127, color: "#f1d801"],
@@ -79,6 +78,7 @@ metadata {
 		valueTile("inputfreq", "device.input_frequency", width: 2, height: 2) {
         	state("input_frequency", label:'${currentValue} Hz',
 			backgroundColors:[
+				[value: 0, color: "#cccccc"],
 				[value: 57, color: "#ff0000"],
 				[value: 58, color: "#ff3b0b"],
 				[value: 59, color: "#f1d801"],
@@ -97,16 +97,14 @@ metadata {
        	valueTile("outputvoltage", "device.output_voltage", width: 2, height: 2) {
        		state("output_voltage", label:'Out ${currentValue} VAC',
            	backgroundColors:[
-               			[value: 114, color: "#ff0000"],
+				[value: 0, color: "#cccccc"],
+               	[value: 114, color: "#ff0000"],
 				[value: 115, color: "#ff3b0b"],
 				[value: 116, color: "#fa7616"],
 				[value: 117, color: "#f5b220"],
 				[value: 118, color: "#f1d801"],
 				[value: 119, color: "#b5c811"],
 				[value: 120, color: "#79b821"],
-			//	[value: 122, color: "#79b821"], // same here
-			//	[value: 123, color: "#79b821"], //
-			//	[value: 124, color: "#79b821"], //
 				[value: 125, color: "#79b821"],
 				[value: 126, color: "#b5c811"],
 				[value: 127, color: "#f1d801"],
@@ -118,6 +116,7 @@ metadata {
        	valueTile("loadpercent", "device.output_percent", width: 2, height: 2) {
        		state("output_percent", label:'Load ${currentValue}%',
             	backgroundColors:[
+				[value: 0, color: "#cccccc"],
 				[value: 25, color: "#79b821"],
 				[value: 35, color: "#b5c811"],
 				[value: 45, color: "#f1d801"],
@@ -135,6 +134,7 @@ metadata {
         valueTile("battery", "device.battery_percent", width: 2, height: 2) {
         	state("battery_percent", label:'Battery ${currentValue}%',
            	backgroundColors:[
+				[value: 'NA', color: "#cccccc"],
 				[value: 25, color: "#ff0000"],
 				[value: 45, color: "#ff3b0b"],
 				[value: 60, color: "#fa7616"],
@@ -144,7 +144,33 @@ metadata {
 				[value: 95, color: "#79b821"]
 			])
 		}
-
+        
+       	valueTile("batteryvoltage", "device.battery_voltage", width: 2, height: 2) {
+       		state("battery_voltage", label:'Batt ${currentValue} VDC',
+           	backgroundColors:[
+				[value: 0, color: "#cccccc"],
+               	[value: 8, color: "#ff0000"], // not sure how to use ${device.battery_voltage_nominal} here
+				[value: 9, color: "#ff3b0b"],
+				[value: 10, color: "#fa7616"],
+				[value: 11, color: "#f5b220"],
+				[value: 12, color: "#f1d801"],
+				[value: 13, color: "#b5c811"],
+				[value: 14, color: "#79b821"],
+				[value: 15, color: "#79b821"],
+				[value: 16, color: "#b5c811"],
+				[value: 17, color: "#ff0000"],
+               	[value: 18, color: "#ff0000"], // 24v range
+				[value: 19, color: "#ff3b0b"],
+				[value: 20, color: "#fa7616"],
+				[value: 21, color: "#f5b220"],
+				[value: 22, color: "#f1d801"],
+				[value: 23, color: "#b5c811"],
+				[value: 24, color: "#79b821"],
+				[value: 27, color: "#79b821"],
+				[value: 30, color: "#b5c811"],
+				[value: 31, color: "#ff0000"]
+			])
+		}
 		//standardTile("alarm", "device.system_alarm", canChangeBackground: false, canChangeIcon: false, width: 3, height: 1) {
 		//state "alarm",   label:'ALARM', action: "silenceAlarm", icon: "st.alarm.beep.beep",   backgroundColor: "#ff0000"
 		//state "normal", label:'SYSTEM OK', icon: "st.alarm.beep.beep", backgroundColor: "#79b821"
@@ -158,7 +184,7 @@ metadata {
 	main "status"
 
    	// These tiles will be displayed when clicked on the device, in the order listed here.
-   	details(["status", "inputstate", "inputvoltage", "inputfreq", "outputsource", "outputvoltage", "loadpercent", "power", "battery", "refresh"])
+   	details(["status", "inputstate", "inputvoltage", "inputfreq", "outputsource", "outputvoltage", "loadpercent", "power", "battery", "batteryvoltage", "refresh"])
 	}
 }
 
@@ -191,8 +217,8 @@ def parse(String description) {
 			return [getAttributes()]
 		} else {
 			def result = []
-			result << createEvent(name: "input_voltage", value: body.input_voltage.text())
-			result << createEvent(name: "input_frequency", value: body.input_frequency.text())
+			result << createEvent(name: "input_voltage", value: body.input_voltage.text() ?: '0')
+            result << createEvent(name: "input_frequency", value: body.input_frequency.text() ?: '0')
 			if (body.ups_status.text().startsWith("OL")) { 
 				result << createEvent(name: "system_status", value: "normal")
 				result << createEvent(name: "input_state", value: "normal")
@@ -206,12 +232,15 @@ def parse(String description) {
 				result << createEvent(name: "input_state", value: "fail")
                 log.warning("Unknown state '" + body.ups_status.text() + "'")
             }
-			result << createEvent(name: "output_voltage", value: body.output_voltage.text())
-			result << createEvent(name: "output_power", value: body.ups_power.text())
-			result << createEvent(name: "output_percent", value: Double.parseDouble(body.ups_power.text()) / Double.parseDouble(body.ups_power_nominal.text()) * 100.0 )
-			result << createEvent(name: "battery_voltage", value: body.battery_voltage.text())
-			result << createEvent(name: "battery_timeremaining", value: body.battery_runtime.text())
-			result << createEvent(name: "battery_percent", value: body.battery_charge.text())
+			result << createEvent(name: "output_voltage", value: body.output_voltage.text() ?: '0')
+			result << createEvent(name: "output_power", value: body.ups_power.text() ?: '0')
+            if (body.ups_power.text() && body.ups_power_nominal.text()) {
+			  result << createEvent(name: "output_percent", value: Double.parseDouble(body.ups_power.text()) / Double.parseDouble(body.ups_power_nominal.text()) * 100.0 )
+            }
+			result << createEvent(name: "battery_voltage", value: body.battery_voltage.text() ?: '0')
+			result << createEvent(name: "battery_voltage_nominal", value: body.battery_voltage.text() ?: '0')
+			result << createEvent(name: "battery_timeremaining", value: body.battery_runtime.text() ?: '0')
+			result << createEvent(name: "battery_percent", value: body.battery_charge.text() ?: '0')
 
 			return result
 		}
