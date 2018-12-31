@@ -134,7 +134,7 @@ metadata {
         valueTile("battery", "device.battery_percent", width: 2, height: 2) {
         	state("battery_percent", label:'Battery ${currentValue}%',
            	backgroundColors:[
-				[value: 'NA', color: "#cccccc"],
+				[value: '0', color: "#cccccc"],
 				[value: 25, color: "#ff0000"],
 				[value: 45, color: "#ff3b0b"],
 				[value: 60, color: "#fa7616"],
