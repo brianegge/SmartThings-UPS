@@ -22,6 +22,7 @@ metadata {
 		capability "Voltage Measurement"
 		capability "Refresh"
 		capability "Sensor"
+        capability "Health Check"
             
 		attribute "input_voltage", "string"
 		attribute "input_frequency", "string"
@@ -34,7 +35,7 @@ metadata {
 		attribute "battery_percent", "string"
 		attribute "battery_timeremaining", "string"
 		attribute "battery_voltage", "string"
-		attribute "battery_nominal", "string"
+		attribute "battery_voltage_nominal", "string"
         
 		attribute "system_alarm", "string"
 		attribute "system_status", "string"
@@ -134,7 +135,7 @@ metadata {
         valueTile("battery", "device.battery_percent", width: 2, height: 2) {
         	state("battery_percent", label:'Battery ${currentValue}%',
            	backgroundColors:[
-				[value: '0', color: "#cccccc"],
+				[value: 'NA', color: "#cccccc"],
 				[value: 25, color: "#ff0000"],
 				[value: 45, color: "#ff3b0b"],
 				[value: 60, color: "#fa7616"],
@@ -217,31 +218,42 @@ def parse(String description) {
 			return [getAttributes()]
 		} else {
 			def result = []
-			result << createEvent(name: "input_voltage", value: body.input_voltage.text() ?: '0')
-            result << createEvent(name: "input_frequency", value: body.input_frequency.text() ?: '0')
-			if (body.ups_status.text().startsWith("OL")) { 
-				result << createEvent(name: "system_status", value: "normal")
-				result << createEvent(name: "input_state", value: "normal")
-				result << createEvent(name: "output_source", value: "normal")
-			} else if (body.ups_status.text().startsWith("OB") || body.ups_status.text().startsWith("LB") ) { 
-				result << createEvent(name: "system_status", value: "onbattery")
-				result << createEvent(name: "input_state", value: "fail")
-				result << createEvent(name: "output_source", value: "battery")
-			} else {
-            	result << createEvent(name: "system_status", value: "fail")
-				result << createEvent(name: "input_state", value: "fail")
-                log.warning("Unknown state '" + body.ups_status.text() + "'")
+            if (body.input_voltage.text())
+			    result << createEvent(name: "input_voltage", value: body.input_voltage.text() ?: '0')
+            if (body.input_frequency.text())    
+                result << createEvent(name: "input_frequency", value: body.input_frequency.text() ?: '0')
+            if (body.ups_status.text()) {
+				if (body.ups_status.text().startsWith("OL")) { 
+					result << createEvent(name: "system_status", value: "normal")
+					result << createEvent(name: "input_state", value: "normal")
+					result << createEvent(name: "output_source", value: "normal")
+				} else if (body.ups_status.text().startsWith("OB") || body.ups_status.text().startsWith("LB") ) { 
+					result << createEvent(name: "system_status", value: "onbattery")
+					result << createEvent(name: "input_state", value: "fail")
+					result << createEvent(name: "output_source", value: "battery")
+				} else {
+        	    	result << createEvent(name: "system_status", value: "fail")
+					result << createEvent(name: "input_state", value: "fail")
+                	log.warning("Unknown state '" + body.ups_status.text() + "'")
+            	}
             }
-			result << createEvent(name: "output_voltage", value: body.output_voltage.text() ?: '0')
-			result << createEvent(name: "output_power", value: body.ups_power.text() ?: '0')
+            if (body.output_voltage.text())  
+			    result << createEvent(name: "output_voltage", value: body.output_voltage.text() ?: '0')
+            if (body.ups_power.text())  
+			    result << createEvent(name: "output_power", value: body.ups_power.text() ?: '0')
             if (body.ups_power.text() && body.ups_power_nominal.text()) {
-			  result << createEvent(name: "output_percent", value: Double.parseDouble(body.ups_power.text()) / Double.parseDouble(body.ups_power_nominal.text()) * 100.0 )
+			    result << createEvent(name: "output_percent", value: Double.parseDouble(body.ups_power.text()) / Double.parseDouble(body.ups_power_nominal.text()) * 100.0 )
             }
-			result << createEvent(name: "battery_voltage", value: body.battery_voltage.text() ?: '0')
-			result << createEvent(name: "battery_voltage_nominal", value: body.battery_voltage.text() ?: '0')
-			result << createEvent(name: "battery_timeremaining", value: body.battery_runtime.text() ?: '0')
-			result << createEvent(name: "battery_percent", value: body.battery_charge.text() ?: '0')
-
+            if (body.battery_voltage.text())
+			    result << createEvent(name: "battery_voltage", value: body.battery_voltage.text() ?: '0')
+            if (body.battery_voltage_nominal.text())
+			    result << createEvent(name: "battery_voltage_nominal", value: body.battery_voltage_nominal.text() ?: '0')
+            if (body.battery_runtime.text())
+			    result << createEvent(name: "battery_timeremaining", value: body.battery_runtime.text() ?: '0')
+            if (body.battery_charge.text())
+			    result << createEvent(name: "battery_percent", value: body.battery_charge.text() ?: '0')
+            if (body.ups_test_result.text())
+			    result << createEvent(name: "ups_test_result", value: body.ups_test_result.text() ?: '0')
 			return result
 		}
 	}
@@ -296,8 +308,6 @@ private postRequest(path, SOAPaction, body) {
 
 def updated() {
 	log.debug "updated()"
-	unschedule(poll)
-	runEvery1Minute(poll)
 }
 
 def poll() {
@@ -370,4 +380,9 @@ def unsubscribe() {
 		SID: uuid:${sid}
 		""", physicalgraph.device.Protocol.LAN)
 	)
+}
+def ping() {
+	log.debug("Ping requested!")
+	subscribe()
+	getAttributes()
 }
