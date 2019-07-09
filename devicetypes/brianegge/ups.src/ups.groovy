@@ -65,8 +65,8 @@ metadata {
 				[value: 115, color: "#ff3b0b"],
 				[value: 116, color: "#fa7616"],
 				[value: 117, color: "#f5b220"],
-				[value: 118, color: "#f1d801"],
-				[value: 119, color: "#b5c811"],
+				[value: 118, color: "#7eb821"],
+				[value: 119, color: "#7cb821"],
 				[value: 120, color: "#79b821"],
 				[value: 125, color: "#79b821"],
 				[value: 126, color: "#b5c811"],
@@ -82,7 +82,7 @@ metadata {
 				[value: 0, color: "#cccccc"],
 				[value: 57, color: "#ff0000"],
 				[value: 58, color: "#ff3b0b"],
-				[value: 59, color: "#f1d801"],
+				[value: 59, color: "#7cb821"],
 				[value: 60, color: "#79b821"],
 				[value: 61, color: "#f1d801"],
 			])
@@ -103,8 +103,8 @@ metadata {
 				[value: 115, color: "#ff3b0b"],
 				[value: 116, color: "#fa7616"],
 				[value: 117, color: "#f5b220"],
-				[value: 118, color: "#f1d801"],
-				[value: 119, color: "#b5c811"],
+				[value: 118, color: "#7eb821"],
+				[value: 119, color: "#7cb821"],
 				[value: 120, color: "#79b821"],
 				[value: 125, color: "#79b821"],
 				[value: 126, color: "#b5c811"],
@@ -306,10 +306,6 @@ private postRequest(path, SOAPaction, body) {
 	return result
 }
 
-def updated() {
-	log.debug "updated()"
-}
-
 def poll() {
 	getAttributes()
 }
@@ -329,7 +325,6 @@ def getAttributes() {
 }
 
 def refresh() {
-	//log.debug "Executing WeMo Switch 'subscribe', then 'timeSyncResponse', then 'poll'"
 	log.debug("Refresh requested!")
 	subscribe()
 	getAttributes()
@@ -363,7 +358,7 @@ def subscribe() {
 }
 
 def resubscribe() {
-	//log.debug "Executing 'resubscribe()'"
+	log.debug "Executing 'resubscribe()'"
 	def sid = getDeviceDataByName("subscriptionId")
 	sendHubCommand(new physicalgraph.device.HubAction("""SUBSCRIBE /upnp/event/basicevent1 HTTP/1.1
 		HOST: ${getHostAddress()}
@@ -385,4 +380,20 @@ def ping() {
 	log.debug("Ping requested!")
 	subscribe()
 	getAttributes()
+}
+def installed() {
+	log.trace "Executing 'installed'"
+	initialize()
+}
+
+def updated() {
+	log.trace "Executing 'updated'"
+	initialize()
+}
+private initialize() {
+	log.trace "Executing 'initialize'"
+
+	sendEvent(name: "DeviceWatch-DeviceStatus", value: "online")
+	sendEvent(name: "healthStatus", value: "online")
+	sendEvent(name: "DeviceWatch-Enroll", value: [protocol: "lan", scheme:"untracked"].encodeAsJson(), displayed: false)
 }
